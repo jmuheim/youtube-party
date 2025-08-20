@@ -52,7 +52,11 @@ function crossfade(nextVideoId) {
   if (isCrossfading) return;
   isCrossfading = true;
 
-  const fadeDuration = 4_000; // 10 Sekunden
+  // Button deaktivieren
+  const nextBtn = document.getElementById("next");
+  if (nextBtn) nextBtn.disabled = true;
+
+  const fadeDuration = 4_000; // 4 Sekunden Crossfade
   const step = 100;
   let volume1 = 100;
   let volume2 = 0;
@@ -76,7 +80,6 @@ function crossfade(nextVideoId) {
       current.stopVideo();
       activePlayer = activePlayer === 1 ? 2 : 1;
 
-      // gerade gespielte Zeile als gespielt markieren
       const playingRow = document.querySelector("#videos-playlist tbody tr.playing");
       if (playingRow) {
         playingRow.classList.remove("playing");
@@ -84,6 +87,9 @@ function crossfade(nextVideoId) {
       }
 
       isCrossfading = false;
+
+      // Button wieder aktivieren
+      if (nextBtn) nextBtn.disabled = false;
     }
   }, step);
 }
