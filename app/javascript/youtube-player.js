@@ -1,4 +1,4 @@
-// 1️⃣ Dynamisch die YouTube IFrame API laden
+// 1️⃣ YouTube IFrame API dynamisch laden
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 document.head.appendChild(tag);
@@ -14,19 +14,17 @@ window.onYouTubeIframeAPIReady = function() {
   player2 = new YT.Player('player2', { playerVars: { autoplay: 0, controls: 0 } });
 };
 
-// 4️⃣ DOM Event Listener
+// 4️⃣ Next-Button Listener
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("play").addEventListener("click", () => {
-    playNextFromDOM();
-    setInterval(checkForCrossfade, 1000);
-  });
-
-  document.getElementById("next").addEventListener("click", () => {
-    if (!isCrossfading) playNextFromDOM();
-  });
+  const nextBtn = document.getElementById("next");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      if (!isCrossfading) playNextFromDOM();
+    });
+  }
 });
 
-// 5️⃣ Playlist aus DOM (tbody, nicht played oder playing)
+// 5️⃣ Playlist aus DOM holen (tbody, ohne .played oder .playing)
 function getNextVideoRow() {
   return document.querySelector("#videos-playlist tbody tr:not(.played):not(.playing)");
 }
@@ -37,7 +35,6 @@ function getNextVideoId() {
 
   // aktuelle Zeile markieren
   row.classList.add("playing");
-
   return row.dataset.youtubeIdentifier;
 }
 
@@ -55,7 +52,7 @@ function crossfade(nextVideoId) {
   if (isCrossfading) return;
   isCrossfading = true;
 
-  const fadeDuration = 10_000; // 10 Sekunden
+  const fadeDuration = 4_000; // 10 Sekunden
   const step = 100;
   let volume1 = 100;
   let volume2 = 0;
@@ -79,7 +76,7 @@ function crossfade(nextVideoId) {
       current.stopVideo();
       activePlayer = activePlayer === 1 ? 2 : 1;
 
-      // Markiere die gerade gespielte Zeile als gespielt
+      // gerade gespielte Zeile als gespielt markieren
       const playingRow = document.querySelector("#videos-playlist tbody tr.playing");
       if (playingRow) {
         playingRow.classList.remove("playing");
@@ -91,7 +88,7 @@ function crossfade(nextVideoId) {
   }, step);
 }
 
-// 7️⃣ Automatischer Crossfade 10 Sekunden vor Ende
+// 7️⃣ Optional: Automatischer Crossfade 10 Sekunden vor Ende
 function checkForCrossfade() {
   const current = activePlayer === 1 ? player1 : player2;
   if (!current.getDuration) return;
