@@ -1,0 +1,117 @@
+h1 YT DJ
+
+h2 Player
+
+script src="https://www.youtube.com/iframe_api"
+
+p: button#play ▶️ Ersten Song starten!
+p: button#next Zu nächstem Song wechseln!
+
+#player1
+
+#player2
+
+javascript:
+  let player1, player2;
+  let activePlayer = 1;
+  let playlist = ["iQbia0PYAro", "_naArkkHMMs", "lk4fxsrJajY"]; // YouTube IDs
+  let currentIndex = 0;
+
+  // YouTube-API init
+  function onYouTubeIframeAPIReady() {
+    player1 = new YT.Player('player1', {
+      videoId: playlist[currentIndex],
+      height: '240',
+      width: '320',
+      playerVars: { autoplay: 0, controls: 0 }
+    });
+    player2 = new YT.Player('player2', {
+      videoId: "",
+      height: '240',
+      width: '320',
+      playerVars: { autoplay: 0, controls: 0 }
+    });
+  }
+
+  // Play-Button starten
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("play").addEventListener("click", () => {
+      const current = activePlayer === 1 ? player1 : player2;
+      current.playVideo();
+      // Check für automatischen Crossfade
+      setInterval(checkForCrossfade, 1000);
+    });
+
+    document.getElementById("next").addEventListener("click", () => {
+      skipToNext();
+    });
+  });
+
+  // Crossfade-Funktion
+  function crossfade(nextVideoId) {
+    const fadeDuration = 10_000; // 10 Sekunden
+    let step = 100;
+    let volume1 = 100;
+    let volume2 = 0;
+
+    const current = activePlayer === 1 ? player1 : player2;
+    const next = activePlayer === 1 ? player2 : player1;
+
+    next.loadVideoById(nextVideoId);
+    next.setVolume(0);
+    next.playVideo();
+
+    const interval = setInterval(() => {
+      volume1 -= 100 * (step / fadeDuration);
+      volume2 += 100 * (step / fadeDuration);
+
+      current.setVolume(Math.max(0, volume1));
+      next.setVolume(Math.min(100, volume2));
+
+      if (volume1 <= 0 && volume2 >= 100) {
+        clearInterval(interval);
+        current.stopVideo();
+        activePlayer = activePlayer === 1 ? 2 : 1;
+      }
+    }, step);
+  }
+
+  // Skip-Funktion (manuell)
+  function skipToNext() {
+    currentIndex = (currentIndex + 1) % playlist.length;
+    const nextVideoId = playlist[currentIndex];
+    crossfade(nextVideoId);
+  }
+
+  // Automatischer Crossfade 10 Sekunden vor Ende
+  function checkForCrossfade() {
+    const current = activePlayer === 1 ? player1 : player2;
+    if (!current.getDuration) return;
+
+    const duration = current.getDuration();
+    const time = current.getCurrentTime();
+
+    if (duration > 0 && duration - time <= 10) {
+      skipToNext();
+    }
+  }
+
+h2 Playlist
+
+table.videos-playlist
+  thead
+    th Thumbnail
+    th Name
+    th Transition
+    th Actions
+
+  tbody
+    - @videos.each do |video|
+      tr
+        td = image_tag "https://img.youtube.com/vi/#{video.youtube_identifier}/mqdefault.jpg"
+        td
+          ul
+            li = link_to "Play now (move to top of cue and play immediately)", "#"
+            li = link_to "Play next (move to top of cue and wait until current song finishes)", "#"
+            li = link_to "Play later (bottom of cue)", "#"
+            li = link_to "Remove (don't play at all)", "#"
