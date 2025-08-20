@@ -17,7 +17,13 @@
 iframe {
   width: 300px;
   height: 200px;
-  border: none;
+  border: 5px solid black;
+  opacity: 0.5;
+
+  &.current {
+    border-color: green;
+    opacity: 1;
+  }
 }
 
 button#next {

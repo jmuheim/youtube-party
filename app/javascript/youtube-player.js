@@ -61,6 +61,10 @@ function crossfade(nextVideoId) {
   const next = activePlayer === 1 ? player2 : player1;
   const current = activePlayer === 1 ? player1 : player2;
 
+  // aktuelle Klasse "current" updaten
+  if (current && current.getIframe) current.getIframe().classList.remove("current");
+  if (next && next.getIframe) next.getIframe().classList.add("current");
+
   next.loadVideoById(nextVideoId);
   next.setVolume(0);
   next.playVideo();
