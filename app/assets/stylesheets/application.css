@@ -13,3 +13,27 @@
  *= require_tree .
  *= require_self
  */
+
+iframe {
+  width: 300px;
+  height: 200px;
+  border: none;
+}
+
+#videos-playlist {
+  td.thumbnail {
+    img {
+      width: 80px;
+      height: 45px;
+    }
+  }
+
+  tr.playing {
+    background-color: #ffeaa7;
+  }
+
+  tr.played {
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+}
