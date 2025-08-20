@@ -1,0 +1,30 @@
+= form_with(model: video) do |form|
+  - if video.errors.any?
+    div style="color: red"
+      h2 = "#{pluralize(video.errors.count, "error")} prohibited this video from being saved:"
+      ul
+        - video.errors.each do |error|
+          li = error.full_message
+
+  div
+    = form.label :youtube_identifier, style: "display: block"
+    = form.text_field :youtube_identifier
+
+  div
+    = form.label :name, style: "display: block"
+    = form.text_field :name
+
+  div
+    = form.label :start_playback_at, style: "display: block"
+    = form.number_field :start_playback_at
+
+  div
+    = form.label :end_playback_at, style: "display: block"
+    = form.number_field :end_playback_at
+
+  div
+    = form.label :transition_time, style: "display: block"
+    = form.number_field :transition_time
+
+  div
+    = form.submit
