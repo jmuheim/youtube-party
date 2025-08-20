@@ -20,6 +20,19 @@ iframe {
   border: none;
 }
 
+button#next {
+  background-color: green;
+  color: white;
+
+  &[disabled] {
+    background-color: red;
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+}
+
 #videos-playlist {
   td.thumbnail {
     img {
