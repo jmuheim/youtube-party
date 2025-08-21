@@ -38,14 +38,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!nextBtn) return;
 
   nextBtn.addEventListener("click", () => {
-    const nextRow = document.querySelector("#videos-playlist tbody tr:not(.played)");
+    const nextRow = document.querySelector("#videos-playlist tbody tr:not(.played):not(.playing)");
     if (!nextRow) {
       console.log("Playlist leer ✅");
       return;
     }
 
-    // Video als gespielt markieren
-    nextRow.classList.add("played");
+    // Vorherigen "playing" Track als "played" markieren
+    const currentPlaying = document.querySelector("#videos-playlist tbody tr.playing");
+    if (currentPlaying) {
+      currentPlaying.classList.remove("playing");
+      currentPlaying.classList.add("played");
+    }
+
+    // Aktuellen Track als "playing" markieren
+    nextRow.classList.add("playing");
 
     const videoId = nextRow.dataset.youtubeIdentifier;
     const startAt = parseFloat(nextRow.dataset.startPlaybackAt || 0);
