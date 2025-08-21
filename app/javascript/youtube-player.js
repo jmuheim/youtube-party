@@ -34,39 +34,33 @@ class YouTubePartyPlayer {
     });
   }
 
-  fadeInVolume() {
-    if (!this.player || typeof this.player.setVolume !== "function") return;
-    const steps = 20;
-    const duration = Math.max(0.1, this.transitionTime);
+  fadeVolume(startVolume, endVolume, duration, onComplete) {
+    // Number of steps depends on the transition time, i.e. each 250ms one step (but 100 max)
+    const steps = Math.min(100, Math.ceil((duration * 1000) / 250));
     const interval = (duration * 1000) / steps;
+
     let currentStep = 0;
-    this.player.setVolume(0);
+    this.player.setVolume(startVolume);
 
     const fade = setInterval(() => {
       currentStep++;
-      const volume = Math.round((currentStep / steps) * 100);
-      this.player.setVolume(volume);
-      if (currentStep >= steps) clearInterval(fade);
-    }, interval);
-  }
-
-  fadeOutVolume(duration = 2) {
-    if (!this.player || typeof this.player.setVolume !== "function") return;
-    const steps = 20;
-    duration = Math.max(0.1, duration);
-    const interval = (duration * 1000) / steps;
-    let currentStep = 0;
-    this.player.setVolume(100);
-
-    const fade = setInterval(() => {
-      currentStep++;
-      const volume = Math.round(100 - (currentStep / steps) * 100);
+      const volume = Math.round(
+        startVolume + ((endVolume - startVolume) * (currentStep / steps))
+      );
       this.player.setVolume(volume);
       if (currentStep >= steps) {
         clearInterval(fade);
-        this.stop();
+        if (typeof onComplete === "function") onComplete();
       }
     }, interval);
+  }
+
+  fadeInVolume() {
+    this.fadeVolume(0, 100, this.transitionTime);
+  }
+
+  fadeOutVolume(duration) {
+    this.fadeVolume(100, 0, duration, () => this.stop());
   }
 
   stop() {
