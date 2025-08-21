@@ -42,18 +42,23 @@ function playNextFromDOM() {
   nextRow.classList.add("playing");
   const nextVideoId = nextRow.dataset.youtubeIdentifier;
 
-  crossfade(nextVideoId);
+  // 🎯 Neue Attribute auslesen
+  const startAt = parseFloat(nextRow.dataset.startPlaybackAt || 0);
+  const endAt = parseFloat(nextRow.dataset.endPlaybackAt || 0); // 0 = bis Ende
+  const transitionTime = parseFloat(nextRow.dataset.transitionTime || 4); // default: 4s
+
+  crossfade(nextVideoId, startAt, endAt, transitionTime);
 }
 
 // 6️⃣ Crossfade-Funktion
-function crossfade(nextVideoId) {
+function crossfade(nextVideoId, startAt, endAt, transitionTime) {
   if (isCrossfading) return;
   isCrossfading = true;
 
   const nextBtn = document.getElementById("next");
   if (nextBtn) nextBtn.disabled = true;
 
-  const fadeDuration = 4000; // 4 Sekunden
+  const fadeDuration = transitionTime * 1000; // Sekunden → ms
   const step = 100;
   let volume1 = 100;
   let volume2 = 0;
@@ -65,9 +70,25 @@ function crossfade(nextVideoId) {
   if (current && current.getIframe) current.getIframe().classList.remove("current");
   if (next && next.getIframe) next.getIframe().classList.add("current");
 
-  next.loadVideoById(nextVideoId);
+  // 🎯 Video mit Startzeit laden
+  next.loadVideoById({
+    videoId: nextVideoId,
+    startSeconds: startAt
+  });
   next.setVolume(0);
   next.playVideo();
+
+  // Falls Endzeit angegeben → stoppen/überspringen
+  if (endAt > 0) {
+    const checkEnd = setInterval(() => {
+      const t = next.getCurrentTime ? next.getCurrentTime() : 0;
+      if (t >= endAt) {
+        clearInterval(checkEnd);
+        next.stopVideo();
+        playNextFromDOM(); // gleich weiter
+      }
+    }, 500);
+  }
 
   const hasCurrent = current.getDuration && current.getCurrentTime && current.getCurrentTime() > 0;
 
