@@ -77,72 +77,54 @@ let player = null;
 
 // --- Next Button Listener ---
 document.addEventListener("DOMContentLoaded", () => {
-  // --- "Play now" links ---
-  document.querySelectorAll('#videos-playlist tbody tr .actions ul li:first-child a').forEach(link => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const row = link.closest("tr");
-      if (!row) return;
+  function playVideoFromPlaylist(video) {
+    markPreviousPlayingAsPlayed();
+    video.classList.add("playing");
 
-      // Mark previous "playing" as "played"
-      const currentPlaying = document.querySelector("#videos-playlist tbody tr.playing");
-      if (currentPlaying) {
-        currentPlaying.classList.remove("playing");
-        currentPlaying.classList.add("played");
-      }
+    const videoId = video.dataset.youtubeIdentifier;
+    const startAt = parseFloat(video.dataset.startPlaybackAt);
+    const transitionTime = parseFloat(video.dataset.transitionTime);
 
-      // Mark this row as "playing"
-      row.classList.add("playing");
+    const nextPlayer = new YouTubePartyPlayer(createNewPlayerContainer().id, videoId, startAt, player, transitionTime);
+    player = nextPlayer;
+  }
 
-      const videoId = row.dataset.youtubeIdentifier;
-      const startAt = parseFloat(row.dataset.startPlaybackAt);
-      const transitionTime = parseFloat(row.dataset.transitionTime);
-
-      // Create new container
-      const container = document.createElement("div");
-      container.classList.add("yt-player");
-      container.id = `player-${Date.now()}`;
-      document.body.appendChild(container);
-
-      // Start new player and update reference
-      const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player, transitionTime);
-      player = nextPlayer;
-    });
-  });
-
-  // --- Next Button Listener (optional, keep for manual next) ---
-  const nextBtn = document.getElementById("next");
-  if (!nextBtn) return;
-
-  nextBtn.addEventListener("click", () => {
-    const nextRow = document.querySelector("#videos-playlist tbody tr:not(.played):not(.playing)");
-    if (!nextRow) {
-      console.log("Playlist leer ✅");
-      return;
-    }
-
-    // Mark previous "playing" as "played"
+  function createNewPlayerContainer() {
+    const container = document.createElement("div");
+    container.classList.add("yt-player");
+    container.id = `player-${Date.now()}`;
+    document.body.appendChild(container);
+    return container;
+  }
+  
+  function markPreviousPlayingAsPlayed() {
     const currentPlaying = document.querySelector("#videos-playlist tbody tr.playing");
     if (currentPlaying) {
       currentPlaying.classList.remove("playing");
       currentPlaying.classList.add("played");
     }
+  }
 
-    // Mark this row as "playing"
-    nextRow.classList.add("playing");
+  document.querySelectorAll('#videos-playlist tbody tr .actions ul li:first-child a').forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
 
-    const videoId = nextRow.dataset.youtubeIdentifier;
-    const startAt = parseFloat(nextRow.dataset.startPlaybackAt);
-    const transitionTime = parseFloat(nextRow.dataset.transitionTime);
+      const video = link.closest("tr");
+      playVideoFromPlaylist(video);
+    });
+  });
 
-    // Create new container
-    const container = document.createElement("div");
-    container.classList.add("yt-player");
-    container.id = `player-${Date.now()}`;
-    document.body.appendChild(container);
+  const nextBtn = document.getElementById("next");
+  if (!nextBtn) return;
 
-    // Start new player and update reference
-    const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player, transitionTime);
-    player = nextPlayer;
+  nextBtn.addEventListener("click", () => {
+    const video = document.querySelector("#videos-playlist tbody tr:not(.played):not(.playing)");
+    if (!video) {
+      console.log("Playlist leer ✅");
+      return;
+    }
+
+    playVideoFromPlaylist(video);
   });
 });
+
