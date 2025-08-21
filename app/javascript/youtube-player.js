@@ -20,13 +20,18 @@ class YouTubePartyPlayer {
       videoId: this.videoId,
       playerVars: { autoplay: 1, controls: 1, start: this.startAt },
       events: {
-        onReady: () => console.log(`Player ${this.containerId} ready, video ${this.videoId}`)
+        onReady: () => console.log(`Player ${this.containerId} ready, video ${this.videoId}`),
+        onStateChange: (event) => {
+          if (event.data === YT.PlayerState.PLAYING) {
+            this.previousPlayer?.stop();
+          }
+        }
       }
     });
   }
 
   stop() {
-    if (this.player) this.player.stopVideo();
+    this.player.stopVideo();
   }
 }
 
