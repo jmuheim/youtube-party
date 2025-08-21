@@ -7,6 +7,8 @@ class YouTubePartyPlayer {
     this.previousPlayer = previousPlayer;
     this.nextPlayer = null;
     this.transitionTime = transitionTime; // in seconds
+    this.fadeInterval = null;
+    this.currentVolume = 0;
     this.init();
 
     if (this.previousPlayer) {
@@ -35,21 +37,31 @@ class YouTubePartyPlayer {
   }
 
   fadeVolume(startVolume, endVolume, duration, onComplete) {
+    // Clear any existing fade
+    if (this.fadeInterval) {
+      clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
+
     // Number of steps depends on the transition time, i.e. each 250ms one step (but 100 max)
     const steps = Math.min(100, Math.ceil((duration * 1000) / 250));
     const interval = (duration * 1000) / steps;
 
     let currentStep = 0;
+    this.currentVolume = startVolume;
     this.player.setVolume(startVolume);
 
-    const fade = setInterval(() => {
+    this.fadeInterval = setInterval(() => {
       currentStep++;
       const volume = Math.round(
         startVolume + ((endVolume - startVolume) * (currentStep / steps))
       );
       this.player.setVolume(volume);
+      this.currentVolume = volume;
       if (currentStep >= steps) {
-        clearInterval(fade);
+        clearInterval(this.fadeInterval);
+        this.fadeInterval = null;
+        this.currentVolume = endVolume;
         if (typeof onComplete === "function") onComplete();
       }
     }, interval);
@@ -60,10 +72,15 @@ class YouTubePartyPlayer {
   }
 
   fadeOutVolume(duration) {
-    this.fadeVolume(100, 0, duration, () => this.stop());
+    // Use the actual current volume from the player
+    this.fadeVolume(this.player.getVolume(), 0, duration, () => this.stop());
   }
 
   stop() {
+    if (this.fadeInterval) {
+      clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
     this.player.stopVideo();
   }
 }
