@@ -1,11 +1,12 @@
 class YouTubePartyPlayer {
-  constructor(containerId, videoId, startAt, previousPlayer = null) {
+  constructor(containerId, videoId, startAt, previousPlayer = null, transitionTime = 0) {
     this.containerId = containerId;
     this.videoId = videoId;
     this.startAt = startAt;
     this.player = null;
     this.previousPlayer = previousPlayer;
     this.nextPlayer = null;
+    this.transitionTime = transitionTime; // in seconds
     this.init();
 
     if (this.previousPlayer) {
@@ -20,14 +21,52 @@ class YouTubePartyPlayer {
       videoId: this.videoId,
       playerVars: { autoplay: 1, controls: 1, start: this.startAt },
       events: {
-        onReady: () => console.log(`Player ${this.containerId} ready, video ${this.videoId}`),
+        onReady: (event) => {
+          this.fadeInVolume();
+        },
         onStateChange: (event) => {
           if (event.data === YT.PlayerState.PLAYING) {
-            this.previousPlayer?.stop();
+            // Crossfade: fade out previous player instead of stopping immediately
+            this.previousPlayer?.fadeOutVolume(this.transitionTime);
           }
         }
       }
     });
+  }
+
+  fadeInVolume() {
+    if (!this.player || typeof this.player.setVolume !== "function") return;
+    const steps = 20;
+    const duration = Math.max(0.1, this.transitionTime);
+    const interval = (duration * 1000) / steps;
+    let currentStep = 0;
+    this.player.setVolume(0);
+
+    const fade = setInterval(() => {
+      currentStep++;
+      const volume = Math.round((currentStep / steps) * 100);
+      this.player.setVolume(volume);
+      if (currentStep >= steps) clearInterval(fade);
+    }, interval);
+  }
+
+  fadeOutVolume(duration = 2) {
+    if (!this.player || typeof this.player.setVolume !== "function") return;
+    const steps = 20;
+    duration = Math.max(0.1, duration);
+    const interval = (duration * 1000) / steps;
+    let currentStep = 0;
+    this.player.setVolume(100);
+
+    const fade = setInterval(() => {
+      currentStep++;
+      const volume = Math.round(100 - (currentStep / steps) * 100);
+      this.player.setVolume(volume);
+      if (currentStep >= steps) {
+        clearInterval(fade);
+        this.stop();
+      }
+    }, interval);
   }
 
   stop() {
@@ -66,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const videoId = nextRow.dataset.youtubeIdentifier;
     const startAt = parseFloat(nextRow.dataset.startPlaybackAt);
+    const transitionTime = parseFloat(nextRow.dataset.transitionTime);
 
     // Neuen Container erstellen
     const container = document.createElement("div");
@@ -74,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(container);
 
     // neuen Player starten und als previousPlayer speichern
-    const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player);
+    const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player, transitionTime);
     player = nextPlayer;
   });
 });
