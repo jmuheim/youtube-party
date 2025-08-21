@@ -1,5 +1,5 @@
 class YouTubePartyPlayer {
-  constructor(containerId, videoId, startAt = 0, previousPlayer = null) {
+  constructor(containerId, videoId, startAt, previousPlayer = null) {
     this.containerId = containerId;
     this.videoId = videoId;
     this.startAt = startAt;
@@ -7,7 +7,7 @@ class YouTubePartyPlayer {
     this.previousPlayer = previousPlayer;
     this.nextPlayer = null;
     this.init();
-    // Link previousPlayer's nextPlayer to this instance
+
     if (this.previousPlayer) {
       this.previousPlayer.nextPlayer = this;
     }
@@ -35,8 +35,7 @@ const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 document.head.appendChild(tag);
 
-// --- vorherige Player-Instanz speichern ---
-let previousPlayer = null;
+let player = null;
 
 // --- Next Button Listener ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -61,10 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nextRow.classList.add("playing");
 
     const videoId = nextRow.dataset.youtubeIdentifier;
-    const startAt = parseFloat(nextRow.dataset.startPlaybackAt || 0);
-
-    // alten Player stoppen
-    if (previousPlayer) previousPlayer.stop();
+    const startAt = parseFloat(nextRow.dataset.startPlaybackAt);
 
     // Neuen Container erstellen
     const container = document.createElement("div");
@@ -73,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(container);
 
     // neuen Player starten und als previousPlayer speichern
-    const newPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, previousPlayer);
-    previousPlayer = newPlayer;
+    const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player);
+    player = nextPlayer;
   });
 });
