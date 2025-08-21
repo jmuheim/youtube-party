@@ -16,7 +16,7 @@ class YouTubePartyPlayer {
 
   init() {
     this.player = new YT.Player(this.containerId, {
-      height: '360',
+      height: '480',
       width: '640',
       videoId: this.videoId,
       playerVars: { autoplay: 1, controls: 1, start: this.startAt },
@@ -77,6 +77,40 @@ let player = null;
 
 // --- Next Button Listener ---
 document.addEventListener("DOMContentLoaded", () => {
+  // --- "Play now" links ---
+  document.querySelectorAll('#videos-playlist tbody tr .actions ul li:first-child a').forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const row = link.closest("tr");
+      if (!row) return;
+
+      // Mark previous "playing" as "played"
+      const currentPlaying = document.querySelector("#videos-playlist tbody tr.playing");
+      if (currentPlaying) {
+        currentPlaying.classList.remove("playing");
+        currentPlaying.classList.add("played");
+      }
+
+      // Mark this row as "playing"
+      row.classList.add("playing");
+
+      const videoId = row.dataset.youtubeIdentifier;
+      const startAt = parseFloat(row.dataset.startPlaybackAt);
+      const transitionTime = parseFloat(row.dataset.transitionTime);
+
+      // Create new container
+      const container = document.createElement("div");
+      container.classList.add("yt-player");
+      container.id = `player-${Date.now()}`;
+      document.body.appendChild(container);
+
+      // Start new player and update reference
+      const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player, transitionTime);
+      player = nextPlayer;
+    });
+  });
+
+  // --- Next Button Listener (optional, keep for manual next) ---
   const nextBtn = document.getElementById("next");
   if (!nextBtn) return;
 
@@ -87,27 +121,27 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Vorherigen "playing" Track als "played" markieren
+    // Mark previous "playing" as "played"
     const currentPlaying = document.querySelector("#videos-playlist tbody tr.playing");
     if (currentPlaying) {
       currentPlaying.classList.remove("playing");
       currentPlaying.classList.add("played");
     }
 
-    // Aktuellen Track als "playing" markieren
+    // Mark this row as "playing"
     nextRow.classList.add("playing");
 
     const videoId = nextRow.dataset.youtubeIdentifier;
     const startAt = parseFloat(nextRow.dataset.startPlaybackAt);
     const transitionTime = parseFloat(nextRow.dataset.transitionTime);
 
-    // Neuen Container erstellen
+    // Create new container
     const container = document.createElement("div");
     container.classList.add("yt-player");
     container.id = `player-${Date.now()}`;
     document.body.appendChild(container);
 
-    // neuen Player starten und als previousPlayer speichern
+    // Start new player and update reference
     const nextPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, player, transitionTime);
     player = nextPlayer;
   });
