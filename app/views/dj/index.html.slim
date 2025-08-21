@@ -13,7 +13,7 @@ table#videos-playlist
     - @videos.each do |video|
       tr data-youtube-identifier=video.youtube_identifier data-start-playback-at=video.start_playback_at data-end-playback-at=video.end_playback_at data-transition-time=video.transition_time
         td.thumbnail = image_tag "https://img.youtube.com/vi/#{video.youtube_identifier}/mqdefault.jpg"
-        td.name = video.name
+        td.name = link_to video.name, "https://www.youtube.com/watch?v=#{video.youtube_identifier}", target: "_blank"
         td.transition = "#{video.transition_time} sec"
         td.actions
           ul
