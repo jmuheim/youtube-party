@@ -18,12 +18,19 @@ class YouTubePartyPlayer {
       }
     });
   }
+
+  stop() {
+    if (this.player) this.player.stopVideo();
+  }
 }
 
 // --- YouTube API laden ---
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 document.head.appendChild(tag);
+
+// --- vorherige Player-Instanz speichern ---
+let previousPlayer = null;
 
 // --- Next Button Listener ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -43,13 +50,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const videoId = nextRow.dataset.youtubeIdentifier;
     const startAt = parseFloat(nextRow.dataset.startPlaybackAt || 0);
 
+    // alten Player stoppen
+    if (previousPlayer) previousPlayer.stop();
+
     // Neuen Container erstellen
     const container = document.createElement("div");
     container.classList.add("yt-player");
     container.id = `player-${Date.now()}`;
     document.body.appendChild(container);
 
-    // neuen Player starten
-    new YouTubePartyPlayer(container.id, videoId, startAt);
+    // neuen Player starten und als previousPlayer speichern
+    previousPlayer = new YouTubePartyPlayer(container.id, videoId, startAt);
   });
 });
