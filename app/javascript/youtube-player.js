@@ -1,10 +1,16 @@
 class YouTubePartyPlayer {
-  constructor(containerId, videoId, startAt = 0) {
+  constructor(containerId, videoId, startAt = 0, previousPlayer = null) {
     this.containerId = containerId;
     this.videoId = videoId;
     this.startAt = startAt;
     this.player = null;
+    this.previousPlayer = previousPlayer;
+    this.nextPlayer = null;
     this.init();
+    // Link previousPlayer's nextPlayer to this instance
+    if (this.previousPlayer) {
+      this.previousPlayer.nextPlayer = this;
+    }
   }
 
   init() {
@@ -67,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(container);
 
     // neuen Player starten und als previousPlayer speichern
-    previousPlayer = new YouTubePartyPlayer(container.id, videoId, startAt);
+    const newPlayer = new YouTubePartyPlayer(container.id, videoId, startAt, previousPlayer);
+    previousPlayer = newPlayer;
   });
 });
