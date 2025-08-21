@@ -8,11 +8,28 @@ class YouTubePartyPlayer {
     this.nextPlayer = null;
     this.transitionTime = transitionTime; // in seconds
     this.fadeInterval = null;
-    this.currentVolume = 0;
     this.init();
+
+    this.createVolumeIndicator();
 
     if (this.previousPlayer) {
       this.previousPlayer.nextPlayer = this;
+    }
+  }
+
+  createVolumeIndicator() {
+    this.volumeIndicator = document.createElement("span");
+    this.volumeIndicator.className = "volume-indicator";
+    this.volumeIndicator.textContent = "🔊 0";
+    const containerElem = document.getElementById(this.containerId);
+    if (containerElem) {
+      containerElem.parentNode.insertBefore(this.volumeIndicator, containerElem.nextSibling);
+    }
+  }
+
+  updateVolumeIndicator(volume) {
+    if (this.volumeIndicator) {
+      this.volumeIndicator.textContent = `🔊 ${volume}`;
     }
   }
 
@@ -48,8 +65,8 @@ class YouTubePartyPlayer {
     const interval = (duration * 1000) / steps;
 
     let currentStep = 0;
-    this.currentVolume = startVolume;
     this.player.setVolume(startVolume);
+    this.updateVolumeIndicator(startVolume);
 
     this.fadeInterval = setInterval(() => {
       currentStep++;
@@ -57,11 +74,11 @@ class YouTubePartyPlayer {
         startVolume + ((endVolume - startVolume) * (currentStep / steps))
       );
       this.player.setVolume(volume);
-      this.currentVolume = volume;
+      this.updateVolumeIndicator(volume);
       if (currentStep >= steps) {
         clearInterval(this.fadeInterval);
         this.fadeInterval = null;
-        this.currentVolume = endVolume;
+        this.updateVolumeIndicator(endVolume);
         if (typeof onComplete === "function") onComplete();
       }
     }, interval);
@@ -81,6 +98,7 @@ class YouTubePartyPlayer {
       clearInterval(this.fadeInterval);
       this.fadeInterval = null;
     }
+    this.updateVolumeIndicator(0);
     this.player.stopVideo();
   }
 }
@@ -107,10 +125,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function createNewPlayerContainer() {
+    // Create the wrapper div
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("youtube-iframe");
+
+    // Create the actual player container
     const container = document.createElement("div");
     container.classList.add("yt-player");
     container.id = `player-${Date.now()}`;
-    document.body.appendChild(container);
+
+    // Append the player container to the wrapper
+    wrapper.appendChild(container);
+
+    // Add the wrapper to the document body
+    document.body.appendChild(wrapper);
+
     return container;
   }
   
