@@ -121,9 +121,15 @@ export default class extends Controller {
   }
 
   _onPlayerError(slotIndex, _event) {
-    // Skip unplayable videos. Only act when the active player errors during playback.
-    if (slotIndex === this.activeSlot && this.state === "playing") {
+    if (slotIndex !== this.activeSlot) return
+
+    if (this.state === "playing") {
       this._startFade(0) // hard cut to next
+    } else if (this.state === "idle") {
+      // Error fired during cueVideoById (before Play) — advance and try the next video.
+      this.currentIndex = this._nextIndex(this.currentIndex)
+      this._cueVideo(this.activeSlot, this.currentIndex)
+      this._cueVideo(this.standbySlot, this._nextIndex(this.currentIndex))
     }
   }
 
