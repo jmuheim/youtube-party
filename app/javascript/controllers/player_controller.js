@@ -121,15 +121,19 @@ export default class extends Controller {
   }
 
   _onPlayerError(slotIndex, _event) {
-    if (slotIndex !== this.activeSlot) return
-
-    if (this.state === "playing") {
-      this._startFade(0) // hard cut to next
-    } else if (this.state === "idle") {
-      // Error fired during cueVideoById (before Play) — advance and try the next video.
-      this.currentIndex = this._nextIndex(this.currentIndex)
-      this._cueVideo(this.activeSlot, this.currentIndex)
-      this._cueVideo(this.standbySlot, this._nextIndex(this.currentIndex))
+    if (slotIndex === this.activeSlot) {
+      if (this.state === "playing") {
+        this._startFade(0) // hard cut to next
+      } else if (this.state === "idle") {
+        // Blocked before Play — advance active and re-cue both slots.
+        this.currentIndex = this._nextIndex(this.currentIndex)
+        this._cueVideo(this.activeSlot, this.currentIndex)
+        this._cueVideo(this.standbySlot, this._nextIndex(this.currentIndex))
+      }
+    } else if (slotIndex === this.standbySlot) {
+      // Standby video blocked — skip ahead to find a playable one.
+      const nextIdx = this._nextIndex(this._nextIndex(this.currentIndex))
+      this._cueVideo(this.standbySlot, nextIdx)
     }
   }
 
