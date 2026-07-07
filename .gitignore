@@ -1,0 +1,19 @@
+# Rails (populated further by `rails new`; this covers pre-scaffold basics)
+/.bundle
+/log/*
+/tmp/*
+/storage/*
+!/log/.keep
+!/tmp/.keep
+!/storage/.keep
+/config/master.key
+/config/credentials/*.key
+.env
+.env.*
+!.env.example
+/node_modules
+/public/assets
+.DS_Store
+
+# Claude Code local settings (keep shared .claude/ config, ignore local overrides)
+.claude/settings.local.json
