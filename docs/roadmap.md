@@ -78,7 +78,7 @@ Fold the Phase 0 crossfade spike into the real models and make it a usable playb
 ### PR 2.2 — Robustness: unavailable videos, wake lock, test-playback
 - `onError` handling → mark unplayable, auto-skip (#31).
 - Screen Wake Lock + keep-tab-focused notice (#31).
-- Pre-party "check all songs" pass and the ad test-playback check (#18, #31).
+- Pre-party "check all songs" pass and the ad test-playback check (#18, #31) — the test-playback tap also doubles as iOS Safari's one-time media priming (#41).
 
 ### PR 2.3 — Transition cancellation architecture
 - Playback state (`idle`/`playing`/`transitioning`) + cancellation-token pattern so skip-to-next mid-transition is safe (#26).
