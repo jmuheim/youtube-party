@@ -1,0 +1,28 @@
+<% content_for :head do %>
+  <script src="https://www.youtube.com/iframe_api"></script>
+<% end %>
+
+<main>
+  <h1>Playback</h1>
+
+  <div data-controller="player"
+       data-player-videos-value="<%= @videos.map { |v| { id: v.youtube_identifier, start: v.start_playback_at, endAt: v.end_playback_at } }.to_json %>"
+       data-player-crossfade-seconds-value="3">
+
+    <div data-player-target="playerWrapper" style="position:relative;width:640px;height:360px;">
+      <div id="yt-player-a"
+           data-player-target="containerA"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:1;"></div>
+      <div id="yt-player-b"
+           data-player-target="containerB"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;"></div>
+    </div>
+
+    <p>
+      <button data-action="click->player#play" data-player-target="playButton">
+        Play playlist
+      </button>
+    </p>
+
+  </div>
+</main>
