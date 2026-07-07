@@ -1,0 +1,34 @@
+<% content_for :title, "Playback" %>
+<% content_for :head do %>
+  <script src="https://www.youtube.com/iframe_api" async></script>
+<% end %>
+
+<main>
+  <h1>Playback</h1>
+
+  <div data-controller="player"
+       data-player-videos-value="<%= @videos.to_json %>"
+       data-player-crossfade-seconds-value="<%= @crossfade_seconds %>">
+
+    <%# Both players stay rendered and visible at all times (YouTube ToS —
+        never display:none or zero-size); the standby sits at opacity 0.
+        YT.Player replaces the inner placeholder with its iframe, so the
+        opacity-carrying containers themselves are never touched by the API. %>
+    <div style="position: relative; width: 640px; max-width: 100%; aspect-ratio: 16 / 9;">
+      <div data-player-target="containerA" style="position: absolute; inset: 0; opacity: 1;">
+        <div data-player-placeholder></div>
+      </div>
+      <div data-player-target="containerB" style="position: absolute; inset: 0; opacity: 0;">
+        <div data-player-placeholder></div>
+      </div>
+    </div>
+
+    <p>
+      <button type="button" data-action="player#play" data-player-target="playButton">
+        Play playlist
+      </button>
+    </p>
+
+    <p data-player-target="status">Loading players…</p>
+  </div>
+</main>

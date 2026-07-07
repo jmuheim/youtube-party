@@ -507,3 +507,29 @@ playback. There's no clean in-app fix for either problem, so it's handled by req
 **Why not raw Ferrum calls without Capybara:** Capybara's auto-waiting matchers (`have_text`, `have_css`, etc.) are essential for Hotwire/Turbo tests where DOM updates arrive asynchronously. Replacing them with manual retry loops in raw Ferrum would re-introduce the exact flakiness they solve. `axe-cuprite` sits on top of Capybara, so we keep both.
 
 **Implication:** Don't add `axe-core-rspec`, `axe-core-capybara`, or `axe-core-selenium` to the Gemfile — they won't work with our driver. The `axe-cuprite` gem is the only axe integration in use.
+
+---
+
+### 40. Client-side JS is tested in-browser through Cuprite, not with a Node test runner
+
+**Decision:** JavaScript logic is tested inside the existing RSpec/Cuprite system-spec suite, with two mechanisms: (1) pure-function modules (e.g. `app/javascript/crossfade_math.js`) are loaded in the test browser via dynamic `import()` through the app's own importmap and asserted on with `evaluate_async_script`; (2) behavior that needs the YouTube player is smoke-tested against a fake `YT.Player` (`spec/support/fake_yt_player.js`) injected via CDP `Page.addScriptToEvaluateOnNewDocument` before any page script runs. No `package.json`, no Node, no Vitest/Jest, no extra CI job.
+
+**Why no Node test runner:** the app is deliberately node-free (importmap-only, #32). A JS test runner would add a `package.json`, `node_modules`, a second test command, and a new CI job — real ongoing infrastructure for what is currently a handful of pure functions. The in-browser route keeps the whole suite behind one command (`bin/rspec`) and exercises the modules through the exact loading path production uses (importmap resolution in Chrome), which a Node runner would only simulate.
+
+**Why a fake `YT.Player` for the smoke test:** hitting real YouTube in CI means network dependence, consent redirects, ads, and embed availability — all outside our control and all sources of flakiness (#18, #31 already establish that ad/embed behavior can't be detected or guaranteed in-app). The fake implements the handful of player methods the controller uses, advances its video clock at 10x wall speed so trimmed tracks reach the fade window in ~1.5s (tiny-duration principle, #24), and records calls for assertions. It is self-guarded on a `fake_yt=1` URL param so the injected script can't leak into other specs, and `window.YT` is defined non-writable so the real `iframe_api` script (which the page still loads) can't displace the fake mid-test. What the fake deliberately does *not* cover — real embed/autoplay behavior — is exactly what the manual real-device gate in roadmap PR 0.2 covers instead.
+
+**Revisit:** if client-side JS grows substantially (multi-device sync, the yt-dlp path, a real design system), a dedicated JS test runner may earn its infrastructure cost — this decision is about the current size, not a permanent rejection. Also watch the per-example page-visit cost of the pure-function specs (~1s each): if the math spec count balloons, batch assertions per visit before reaching for Node.
+
+---
+
+### 41. Playback host should be a desktop browser; iOS Safari degrades crossfades to hard cuts
+
+> **Note:** the "detect iOS and force the hard-cut path" refinement mentioned under Implication is now planned work, not just possible: roadmap PR 3.6 — deliberate hard cuts on iOS, with #23's auto-selection supplying short "quick"-bucket transition sounds; desktop keeps full crossfades.
+
+**Decision:** The playback host device for the PoC is expected to be a desktop browser (a laptop/desktop connected to the speakers). iOS Safari works only in a documented degraded mode, not blocked: the outgoing song stops the instant the incoming one starts (no audio overlap), and the very first programmatic standby start needs a one-time manual tap. This captures the real-device findings from the roadmap PR 0.2 spike gate (PR #6), settling the "riskiest unknown" flagged in #10 and #14 — the two-player design holds, with a platform-scoped caveat.
+
+**Why (spike findings, July 2026):** On desktop Chrome/Safari the design works exactly as assumed — the single Play click's gesture allowance carries over to programmatic `playVideo()` on the standby player, and both videos overlap through the fade. On iOS Safari two distinct behaviors appeared. (a) On first use the standby player did not auto-start; after one manual tap on that player's own play button, programmatic starts worked from then on and kept working across a page reload — consistent with Safari granting the site a per-site media auto-play allowance once the user has directly interacted with playback. (b) The moment the incoming video starts with sound, iOS pauses the outgoing one: iOS permits only one unmuted media element playing at a time. That makes an overlapping audio crossfade impossible at the platform level inside YouTube iframes — it is not a bug in the fade logic and no in-app change can restore the overlap.
+
+**Implication:** README's host-device requirements now recommend desktop hosting alongside the ad-free (#18) and keep-tab-focused (#31) requirements; guests' phones are unaffected since visitor devices never play audio (#30). The PR 2.2 pre-party test-playback step doubles as the iOS priming opportunity — one deliberate tap during setup unlocks programmatic starts for the session. A possible later refinement (not built now): detect iOS and force the hard-cut path (effective crossfade 0) so transitions look intentional rather than a visual fade over abruptly-cut audio.
+
+**Revisit:** if phone-hosted playback becomes a real use case (DJ handoff, #37; remote admin control, #17; multi-device sync, #10), or if the yt-dlp owned-media path (#33) lands — mixing owned audio through the Web Audio API uses a single output and sidesteps the one-video-at-a-time limit entirely.
