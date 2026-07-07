@@ -495,3 +495,15 @@ playback. There's no clean in-app fix for either problem, so it's handled by req
 **Why:** hard-wrapped paragraphs (newlines inserted mid-paragraph at ~72 chars) render with spurious blank lines / visible breaks in Markdown viewers that treat single line breaks as `<br>` — GitHub-Flavored-Markdown-style renderers do this, and at least one preview tool in use does. One-line-per-paragraph renders identically everywhere (strict CommonMark and break-happy renderers alike). The tradeoff — longer lines in raw diffs — is minor with modern Git tooling and is a common documentation convention precisely for this reason.
 
 **Implication:** the `decision-log` skill's line-wrapping rule was updated to match, and CLAUDE.md's Conventions note the rule project-wide. When editing any Markdown file, don't reintroduce mid-paragraph hard wraps. (This is genuine house style for docs — the kind of documentation convention that's worth encoding, unlike generic "how to write Markdown" which isn't.)
+
+---
+
+### 39. Use `axe-cuprite` for accessibility audits, not `axe-core-rspec`
+
+**Decision:** Automated axe-core accessibility checks in system specs use the `axe-cuprite` gem rather than Deque's official `axe-core-rspec` / `axe-core-capybara` gems. Usage in specs: `expect(page).to be_axe_clean` (same matcher name).
+
+**Why:** `axe-core-rspec` v4.x uses a multi-window analysis path (`analyze_post_43x`) that calls Selenium WebDriver internals (`browser.manage.timeouts`, `window_handle`, `within_about_blank_context`). Cuprite's Ferrum-based browser has none of these — the call fails immediately with `undefined method 'manage'`. A compatibility shim is possible but fragile against upstream gem updates. `axe-cuprite` was written specifically to avoid this: it drives the axe-core engine entirely through Capybara's driver-neutral JavaScript API (`execute_script` / `evaluate_script`), which Ferrum implements cleanly. It has no Selenium dependency and lists Cuprite as its only supported driver.
+
+**Why not raw Ferrum calls without Capybara:** Capybara's auto-waiting matchers (`have_text`, `have_css`, etc.) are essential for Hotwire/Turbo tests where DOM updates arrive asynchronously. Replacing them with manual retry loops in raw Ferrum would re-introduce the exact flakiness they solve. `axe-cuprite` sits on top of Capybara, so we keep both.
+
+**Implication:** Don't add `axe-core-rspec`, `axe-core-capybara`, or `axe-core-selenium` to the Gemfile — they won't work with our driver. The `axe-cuprite` gem is the only axe integration in use.
