@@ -109,6 +109,12 @@ Each of these is independent and optional — build in whatever order the appeal
 ### PR 3.5 — In-song skip segments
 - `skip_start_seconds`/`skip_end_seconds` (one segment, two columns), same two-player mechanism, short fixed duration (#25). Depends on the cancellation architecture (2.3) being in place.
 
+### PR 3.6 — iOS degraded mode: deliberate hard cuts with quick transition sounds
+- On iOS hosts, force every transition's effective crossfade duration to 0, reusing 3.2's forced-hard-cut path — iOS allows only one unmuted video at a time (#41), so a fade there is a visual ramp over abruptly-stopped audio; a deliberate cut reads as intentional instead of broken.
+- Transition sounds still play and need no new logic: #23's auto-selection already maps hard-cut transitions to the short-`climax_offset_seconds` "quick" bucket, so iOS song changes get punchy stingers for free.
+- Desktop behavior unchanged — full crossfades as envisioned.
+- Depends on 3.2 (the per-transition hard-cut path); pairs with 3.3/3.4 for the sounds. A simple platform check is fine here — this is graceful degradation, not a feature gate.
+
 ---
 
 ## Phase 4 — Social touches
@@ -160,6 +166,6 @@ Housekeeping surfaced by the same brainstorm:
 
 ## How to read this vs. reality
 
-- **Phases 0–2 are the recommended spine**; the ordering there matters (mechanics → domain → playback). Within Phase 3 the order is mostly free, though there are noted dependencies (3.4 needs 3.2+3.3; 3.5 needs 2.3).
+- **Phases 0–2 are the recommended spine**; the ordering there matters (mechanics → domain → playback). Within Phase 3 the order is mostly free, though there are noted dependencies (3.4 needs 3.2+3.3; 3.5 needs 2.3; 3.6 needs 3.2, plus 3.3/3.4 for its sounds).
 - Sizes vary — 0.2 and 0.3 are genuine spikes that may each take real time; several Phase 3 PRs are small. Split any PR that grows past "one reviewable change".
 - Keep `docs/decisions.md` as the source of truth for *why*; this file is just *order*. If implementation reveals a better path, update this file (it's covered by the same "keep docs current" checklist).
