@@ -152,7 +152,7 @@ Crossfade is done with two `YT.Player` instances, ramping both audio volume and 
 
 - [ ] Any new or changed behavior has tests covering it (system specs for user-facing flows, unit specs where they add value — see "Testing"). Not tested-later-as-a-followup.
 - [ ] The full test suite passes, not just the tests for this change.
-- [ ] Code is linted/formatted cleanly (e.g. RuboCop for Ruby — exact linter/formatter setup to be pinned down during scaffolding; add it to this file once decided).
+- [ ] Code is linted/formatted cleanly: `bin/rubocop` (RuboCop with `rubocop-rails-omakase`, Rails 8 default — zero-config omakase style).
 - [ ] The PR title and description accurately describe the current diff — update them as new commits are pushed if scope changes, and do a final check right before merge, since scope creep during review is easy to miss.
 - [ ] Every doc or config file the PR makes stale is updated to match — not just `README.md` and `CLAUDE.md`. This includes `docs/decisions.md` (add an entry if the PR makes or changes a real decision), inline code comments describing behavior the PR changed, `.env.example` if env vars changed, migration/schema docs if the data model changed, and any other file whose accuracy the PR affects. The two constants (`README.md`, `CLAUDE.md`) are the minimum, not the whole list — ask "what else does this change make wrong?" rather than only checking those two by name.
 
@@ -183,11 +183,11 @@ A path-based reminder hook (`.claude/hooks/skill_reminder.sh`) also emits these 
 
 **Hooks** (`.claude/hooks/`):
 - `check_html_safe.sh` — blocks edits introducing `html_safe`/`raw()` in app code (enforces the Conventions rule deterministically).
-- `skill_reminder.sh` — path-based, non-blocking: every edit to a governed path (views, specs, playback code, the decision log) gets the matching skill pointer injected, making skill routing deterministic rather than memory-dependent. Both scripts exist and are logic-tested; wire them into `.claude/settings.json` during scaffolding (instructions in the script headers).
+- `skill_reminder.sh` — path-based, non-blocking: every edit to a governed path (views, specs, playback code, the decision log) gets the matching skill pointer injected, making skill routing deterministic rather than memory-dependent. Both scripts are wired into `.claude/settings.json`.
 
-**Still planned, not yet scaffolded** — these reference commands/paths (`bin/rspec`, a linter config) that don't exist until the app is scaffolded (see `docs/decisions.md` for why this part is deferred):
+**Still planned** (scaffolding done; these are the next automation layer — see `docs/decisions.md` #15, #35):
 
-- **Hook** (deterministic, always fires — this is the real "validation loop"): a `PostToolUse` hook that runs the linter/formatter after file edits, and a `Stop` hook that runs the RSpec suite before a task is considered done. This turns "tests pass, code is linted" from something that has to be remembered into something enforced automatically, every time, no exceptions.
+- **Hook** (deterministic, always fires — this is the real "validation loop"): a `PostToolUse` hook that runs `bin/rubocop` after file edits, and a `Stop` hook that runs `bin/rspec` before a task is considered done. This turns "tests pass, code is linted" from something that has to be remembered into something enforced automatically, every time, no exceptions.
 - **Subagent** (isolated context, spawned for a side task, only a summary returns): a test-runner/reviewer subagent that runs the full suite plus a CLAUDE.md-conventions check and reports pass/fail — keeps verbose test/lint output out of the main working context during a feature.
 
 Quick distinction, since it's easy to mix these up: hooks are deterministic (always run, no judgment call); skills and subagents are both judgment-based (Claude decides when to use them), but skills run in-line in the same context while subagents run isolated and report back a summary.

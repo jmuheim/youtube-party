@@ -58,22 +58,37 @@ See [`docs/decisions.md`](docs/decisions.md) for the reasoning behind these choi
 
 ## Getting Started
 
-> This is a planning-stage repo; the app itself hasn't been scaffolded yet. Once `rails new` has been run, this section should be updated with real setup steps. Rough outline for when that happens:
+**Requirements:** Ruby 3.4.7 (via rbenv), MySQL 8.4, Google Chrome (for system specs).
 
 ```bash
 git clone <repo-url>
 cd youtube-party
+
+# rbenv picks up .ruby-version + .ruby-gemset automatically
+rbenv gemset create 3.4.7 youtube-party   # one-time, if not already created
 bundle install
-cp .env.example .env        # fill in DATABASE_URL, etc.
-bin/rails db:setup
-bin/dev                     # starts the Rails server
+
+cp .env.example .env      # fill in DB_USERNAME, DB_PASSWORD, DB_SOCKET
+bin/rails db:setup        # creates and migrates dev + test databases
+bin/dev                   # starts the Rails server (localhost:3000)
+```
+
+Run the test suite:
+
+```bash
+bin/rspec                 # all specs
+bin/rspec spec/system/    # system specs only
+bin/rubocop               # lint check
 ```
 
 ### Environment variables
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | MySQL connection string (dev/test/prod) |
+| Variable | Purpose | Default |
+|---|---|---|
+| `DB_USERNAME` | MySQL username | `root` |
+| `DB_PASSWORD` | MySQL password | _(empty)_ |
+| `DB_SOCKET` | MySQL socket path (local dev) | — |
+| `DB_HOST` | MySQL host (CI / Docker; use instead of socket) | `localhost` |
 
 ## Roadmap (post-v1)
 

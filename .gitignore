@@ -17,3 +17,7 @@
 
 # Claude Code local settings (keep shared .claude/ config, ignore local overrides)
 .claude/settings.local.json
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+

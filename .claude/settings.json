@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check_html_safe.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/skill_reminder.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
