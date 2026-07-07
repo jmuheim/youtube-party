@@ -2,4 +2,8 @@
 # CVEs that are not relevant to the application can be enumerated on the ignore list below.
 
 ignore:
-  - CVE-THAT-DOES-NOT-APPLY
+  # webrick is a test-only transitive dependency (pulled in by ferrum/cuprite for
+  # the Chrome DevTools Protocol connection). It is never deployed to production.
+  # CVE-2026-38969 (trailer-reparsing issue) has no patch yet as of 2026-07-07;
+  # remove this ignore once a fixed webrick version is released.
+  - CVE-2026-38969
